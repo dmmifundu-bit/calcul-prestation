@@ -6,6 +6,7 @@ import {
 } from './pricing';
 import { genererDevisPDF, genererContratPDF } from './pdf';
 import { chargerHistorique, ajouterEntree, supprimerEntree, prochainNumero } from './storage';
+import logoDreamRecordTV from './assets/logo.png';
 import './App.css';
 
 const FORM_VIDE = {
@@ -77,8 +78,10 @@ export default function App() {
           <span className="icone-decor icone-camera">🎥</span>
         </div>
         <div className="entete-contenu">
+          <img src={logoDreamRecordTV} alt="DreamRecord TV" className="logo-marque" />
           <h1>Danny Mifundu</h1>
           <p>Devis &amp; contrats — Photo / Vidéo / Live</p>
+          <a className="lien-site" href="https://www.dreamrecordtv.com" target="_blank" rel="noreferrer">www.dreamrecordtv.com</a>
         </div>
       </header>
 
