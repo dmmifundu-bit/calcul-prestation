@@ -14,13 +14,78 @@ body {
 }
 
 .entete {
-  background: #1e1e28;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a22 0%, #2a1518 55%, #4a1216 100%);
   color: #fff;
-  padding: 28px 20px 20px;
+  padding: 36px 20px 30px;
   text-align: center;
 }
-.entete h1 { margin: 0 0 4px; font-size: 22px; }
-.entete p { margin: 0; color: #b7b7c4; font-size: 13px; }
+
+.entete-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.icone-decor {
+  position: absolute;
+  font-size: 92px;
+  opacity: 0.16;
+  filter: grayscale(0.2);
+  animation: flotter 6s ease-in-out infinite;
+}
+.icone-appareil {
+  left: -10px;
+  top: -14px;
+  transform: rotate(-18deg);
+  animation-delay: 0s;
+}
+.icone-camera {
+  right: -14px;
+  bottom: -20px;
+  transform: rotate(14deg);
+  animation-delay: 1.4s;
+}
+@keyframes flotter {
+  0%, 100% { transform-origin: center; transform: translateY(0) rotate(var(--rot, -18deg)); }
+  50% { transform: translateY(-10px) rotate(var(--rot, -18deg)); }
+}
+
+.entete-contenu {
+  position: relative;
+  z-index: 1;
+  animation: entree-douce 0.7s ease-out;
+}
+@keyframes entree-douce {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.entete h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: 0.3px; }
+.entete p { margin: 0; color: #e7c9c9; font-size: 13px; }
+
+.ticker {
+  background: #0f0f13;
+  border-bottom: 1px solid #2a2a33;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 7px 0;
+}
+.ticker-piste {
+  display: inline-flex;
+  animation: defiler 22s linear infinite;
+}
+.ticker-piste span {
+  color: #e8821a;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding-right: 0;
+}
+@keyframes defiler {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
 
 .onglets {
   display: flex;

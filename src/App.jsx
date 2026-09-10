@@ -72,9 +72,22 @@ export default function App() {
   return (
     <div className="page">
       <header className="entete">
-        <h1>Danny Mifundu</h1>
-        <p>Devis &amp; contrats — Photo / Vidéo / Live</p>
+        <div className="entete-decor" aria-hidden="true">
+          <span className="icone-decor icone-appareil">📷</span>
+          <span className="icone-decor icone-camera">🎥</span>
+        </div>
+        <div className="entete-contenu">
+          <h1>Danny Mifundu</h1>
+          <p>Devis &amp; contrats — Photo / Vidéo / Live</p>
+        </div>
       </header>
+
+      <div className="ticker" aria-hidden="true">
+        <div className="ticker-piste">
+          <span>📷 Photo&nbsp;&nbsp;•&nbsp;&nbsp;🎥 Vidéo&nbsp;&nbsp;•&nbsp;&nbsp;📡 Live&nbsp;&nbsp;•&nbsp;&nbsp;✨ Devis instantané&nbsp;&nbsp;•&nbsp;&nbsp;📄 Contrat automatique&nbsp;&nbsp;•&nbsp;&nbsp;🌐 www.dreamrecordtv.com&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+          <span>📷 Photo&nbsp;&nbsp;•&nbsp;&nbsp;🎥 Vidéo&nbsp;&nbsp;•&nbsp;&nbsp;📡 Live&nbsp;&nbsp;•&nbsp;&nbsp;✨ Devis instantané&nbsp;&nbsp;•&nbsp;&nbsp;📄 Contrat automatique&nbsp;&nbsp;•&nbsp;&nbsp;🌐 www.dreamrecordtv.com&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+        </div>
+      </div>
 
       <nav className="onglets">
         <button className={onglet === 'nouveau' ? 'actif' : ''} onClick={() => setOnglet('nouveau')}>
