@@ -210,3 +210,66 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 480px) {
   .grille { grid-template-columns: 1fr; }
 }
+
+/* Écran de verrouillage (accès protégé par mot de passe) */
+.verrou-conteneur {
+  display: flex;
+  justify-content: center;
+  padding: 48px 20px;
+}
+
+.verrou-carte {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 32px 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.verrou-icone {
+  font-size: 32px;
+  margin: 0;
+}
+
+.verrou-carte h2 {
+  margin: 0;
+  color: #1e1e28;
+}
+
+.verrou-texte {
+  margin: 0 0 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+.verrou-champ {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+}
+
+.verrou-champ:focus {
+  outline: none;
+  border-color: #1e1e28;
+}
+
+.verrou-erreur {
+  margin: 0;
+  color: #b3261e;
+  font-size: 13px;
+}
+
+.verrou-carte .bouton.principal {
+  margin-top: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+}

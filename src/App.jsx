@@ -6,6 +6,7 @@ import {
 } from './pricing';
 import { genererDevisPDF, genererContratPDF } from './pdf';
 import { chargerHistorique, ajouterEntree, supprimerEntree, prochainNumero } from './storage';
+import { MOT_DE_PASSE, CLE_ACCES } from './acces';
 import logoDreamRecordTV from './assets/logo.png';
 import './App.css';
 
@@ -28,6 +29,23 @@ export default function App() {
   const [form, setForm] = useState(FORM_VIDE);
   const [historique, setHistorique] = useState(() => chargerHistorique());
   const [message, setMessage] = useState('');
+
+  const [autorise, setAutorise] = useState(
+    () => typeof window !== 'undefined' && window.localStorage.getItem(CLE_ACCES) === 'oui'
+  );
+  const [motDePasseSaisi, setMotDePasseSaisi] = useState('');
+  const [erreurAcces, setErreurAcces] = useState('');
+
+  const verifierMotDePasse = (e) => {
+    e.preventDefault();
+    if (motDePasseSaisi === MOT_DE_PASSE) {
+      window.localStorage.setItem(CLE_ACCES, 'oui');
+      setAutorise(true);
+      setErreurAcces('');
+    } else {
+      setErreurAcces('Mot de passe incorrect.');
+    }
+  };
 
   const calcul = useMemo(() => calculerPrix(form), [form]);
 
@@ -69,6 +87,43 @@ export default function App() {
   };
 
   const supprimer = (id) => setHistorique(supprimerEntree(id));
+
+  if (!autorise) {
+    return (
+      <div className="page page-verrouillee">
+        <header className="entete">
+          <div className="entete-decor" aria-hidden="true">
+            <span className="icone-decor icone-appareil">📷</span>
+            <span className="icone-decor icone-camera">🎥</span>
+          </div>
+          <div className="entete-contenu">
+            <img src={logoDreamRecordTV} alt="DreamRecord TV" className="logo-marque" />
+            <h1>Accès privé</h1>
+            <p>Outil interne — Devis &amp; contrats</p>
+            <a className="lien-site" href="https://www.dreamrecordtv.com" target="_blank" rel="noreferrer">www.dreamrecordtv.com</a>
+          </div>
+        </header>
+
+        <div className="verrou-conteneur">
+          <form className="verrou-carte" onSubmit={verifierMotDePasse}>
+            <p className="verrou-icone" aria-hidden="true">🔒</p>
+            <h2>Accès réservé</h2>
+            <p className="verrou-texte">Entre le mot de passe pour accéder à l'outil.</p>
+            <input
+              type="password"
+              className="verrou-champ"
+              placeholder="Mot de passe"
+              value={motDePasseSaisi}
+              onChange={(e) => setMotDePasseSaisi(e.target.value)}
+              autoFocus
+            />
+            {erreurAcces && <p className="verrou-erreur">{erreurAcces}</p>}
+            <button type="submit" className="bouton principal">Entrer</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
