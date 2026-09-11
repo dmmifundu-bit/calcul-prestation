@@ -45,16 +45,25 @@ export function trouverTypePrestation(id) {
 }
 
 // Calcule le détail complet (sous-total, options, total, acompte, solde) à
-// partir des choix faits dans le formulaire.
-export function calculerPrix({ typePrestationId, heures, optionDrone }) {
+// partir des choix faits dans le formulaire. Si une négociation est active
+// et qu'un prix négocié valide est fourni, ce prix remplace le tarif
+// catalogue pour le calcul du total (et donc de l'acompte/solde), tout en
+// gardant le tarif catalogue disponible pour affichage/comparaison.
+export function calculerPrix({ typePrestationId, heures, optionDrone, negociationActive, prixNegocie }) {
   const type = trouverTypePrestation(typePrestationId);
   const h = Number(heures) || 0;
   const sousTotal = type.tauxHoraire * h;
   const totalOptions = optionDrone ? OPTION_DRONE_PRIX : 0;
-  const total = sousTotal + totalOptions;
+  const prixCatalogue = sousTotal + totalOptions;
+
+  const prixNegocieValide = negociationActive && Number(prixNegocie) > 0;
+  const total = prixNegocieValide ? Number(prixNegocie) : prixCatalogue;
+  const negocie = Boolean(prixNegocieValide);
+  const ajustementNegocie = negocie ? Math.round((total - prixCatalogue) * 100) / 100 : 0;
+
   const acompte = Math.round(total * ACOMPTE_POURCENTAGE * 100) / 100;
   const solde = Math.round((total - acompte) * 100) / 100;
-  return { type, heures: h, sousTotal, totalOptions, total, acompte, solde };
+  return { type, heures: h, sousTotal, totalOptions, prixCatalogue, negocie, ajustementNegocie, total, acompte, solde };
 }
 
 export function formaterEuros(montant) {

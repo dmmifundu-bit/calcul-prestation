@@ -21,6 +21,8 @@ const FORM_VIDE = {
   typePrestationId: TYPES_PRESTATION[0].id,
   heures: 1,
   optionDrone: false,
+  negociationActive: false,
+  prixNegocie: '',
   notes: '',
 };
 
@@ -51,7 +53,11 @@ export default function App() {
 
   const majChamp = (champ, valeur) => setForm((f) => ({ ...f, [champ]: valeur }));
 
-  const formValide = form.clientNom.trim() && form.dateEvenement && Number(form.heures) > 0;
+  const formValide =
+    form.clientNom.trim() &&
+    form.dateEvenement &&
+    Number(form.heures) > 0 &&
+    (!form.negociationActive || Number(form.prixNegocie) > 0);
 
   const enregistrer = (type, numero) => {
     const entree = {
@@ -211,6 +217,27 @@ export default function App() {
                 <input type="checkbox" checked={form.optionDrone} onChange={(e) => majChamp('optionDrone', e.target.checked)} />
                 Option drone (+{formaterEuros(100)})
               </label>
+              <label className="case">
+                <input
+                  type="checkbox"
+                  checked={form.negociationActive}
+                  onChange={(e) => majChamp('negociationActive', e.target.checked)}
+                />
+                Prix négocié avec le client
+              </label>
+              {form.negociationActive && (
+                <label>
+                  Prix négocié total (€) *
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.prixNegocie}
+                    onChange={(e) => majChamp('prixNegocie', e.target.value)}
+                    placeholder={`Tarif catalogue : ${formaterEuros(calcul.prixCatalogue)}`}
+                  />
+                </label>
+              )}
             </div>
             <label className="notes">
               Notes (optionnel)
@@ -224,7 +251,13 @@ export default function App() {
             {calcul.totalOptions > 0 && (
               <div className="ligne"><span>Option drone</span><span>{formaterEuros(calcul.totalOptions)}</span></div>
             )}
-            <div className="ligne total"><span>Total</span><span>{formaterEuros(calcul.total)}</span></div>
+            {calcul.negocie && (
+              <>
+                <div className="ligne petit"><span>Sous-total tarif catalogue</span><span>{formaterEuros(calcul.prixCatalogue)}</span></div>
+                <div className="ligne petit"><span>Ajustement négocié</span><span>{formaterEuros(calcul.ajustementNegocie)}</span></div>
+              </>
+            )}
+            <div className="ligne total"><span>{calcul.negocie ? 'Total (prix négocié)' : 'Total'}</span><span>{formaterEuros(calcul.total)}</span></div>
             <div className="ligne petit"><span>Acompte (50%) à la commande</span><span>{formaterEuros(calcul.acompte)}</span></div>
             <div className="ligne petit"><span>Solde (50%) le jour J</span><span>{formaterEuros(calcul.solde)}</span></div>
 

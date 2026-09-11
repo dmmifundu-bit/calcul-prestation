@@ -121,13 +121,23 @@ function tableauPrix(doc, y, calcul) {
     doc.text(formaterEuros(calcul.totalOptions), 190, ligneY, { align: 'right' });
   }
 
+  if (calcul.negocie) {
+    ligneY += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.text('Sous-total tarif catalogue', 120, ligneY);
+    doc.text(formaterEuros(calcul.prixCatalogue), 190, ligneY, { align: 'right' });
+    ligneY += 6;
+    doc.text('Ajustement négocié avec le client', 120, ligneY);
+    doc.text(formaterEuros(calcul.ajustementNegocie), 190, ligneY, { align: 'right' });
+  }
+
   ligneY += 10;
   doc.setDrawColor(200, 200, 200);
   doc.line(120, ligneY, 196, ligneY);
   ligneY += 6;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.text('Total', 120, ligneY);
+  doc.text(calcul.negocie ? 'Total (prix négocié)' : 'Total', 120, ligneY);
   doc.text(formaterEuros(calcul.total), 190, ligneY, { align: 'right' });
 
   ligneY += 8;
@@ -216,7 +226,9 @@ function construireArticles(data, calcul, numero) {
 
   articles.push({
     titre: 'Article 5 — Prix et modalités de paiement',
-    texte: `Le montant total de la prestation s'élève à ${formaterEuros(calcul.total)}. Un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date. Le solde de ${formaterEuros(calcul.solde)} (50%) est payable le jour de la prestation, avant le début de celle-ci.`,
+    texte: calcul.negocie
+      ? `Le tarif catalogue de la prestation s'élève à ${formaterEuros(calcul.prixCatalogue)}. D'un commun accord entre les parties, un prix négocié a été convenu, portant le montant total de la prestation à ${formaterEuros(calcul.total)}. Un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date. Le solde de ${formaterEuros(calcul.solde)} (50%) est payable le jour de la prestation, avant le début de celle-ci.`
+      : `Le montant total de la prestation s'élève à ${formaterEuros(calcul.total)}. Un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date. Le solde de ${formaterEuros(calcul.solde)} (50%) est payable le jour de la prestation, avant le début de celle-ci.`,
   });
 
   articles.push({
