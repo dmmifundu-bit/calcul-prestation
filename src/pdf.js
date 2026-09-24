@@ -103,7 +103,7 @@ function blocClient(doc, y, data) {
   return y + 32;
 }
 
-function tableauPrix(doc, y, calcul) {
+function tableauPrix(doc, y, calcul, aArrangement = false) {
   y = assurerPlace(doc, y, 40);
   doc.setDrawColor(220, 220, 220);
   doc.setFillColor(240, 240, 245);
@@ -150,11 +150,19 @@ function tableauPrix(doc, y, calcul) {
   ligneY += 8;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Acompte (50%) à la commande', 120, ligneY);
-  doc.text(formaterEuros(calcul.acompte), 190, ligneY, { align: 'right' });
-  ligneY += 5;
-  doc.text('Solde (50%) le jour de la prestation', 120, ligneY);
-  doc.text(formaterEuros(calcul.solde), 190, ligneY, { align: 'right' });
+  if (aArrangement) {
+    // Un arrangement particulier a été convenu avec ce client : on n'affiche
+    // plus la règle standard acompte 50% / solde 50%, qui ne s'applique pas
+    // et créerait une contradiction visuelle avec l'arrangement décrit plus loin.
+    doc.setFont('helvetica', 'italic');
+    doc.text('Modalités de paiement : voir "Arrangement particulier" ci-dessous', 120, ligneY);
+  } else {
+    doc.text('Acompte (50%) à la commande', 120, ligneY);
+    doc.text(formaterEuros(calcul.acompte), 190, ligneY, { align: 'right' });
+    ligneY += 5;
+    doc.text('Solde (50%) le jour de la prestation', 120, ligneY);
+    doc.text(formaterEuros(calcul.solde), 190, ligneY, { align: 'right' });
+  }
 
   return ligneY + 10;
 }
@@ -175,7 +183,7 @@ export function genererDevisPDF(data, calcul, numero) {
   const doc = new jsPDF();
   enTete(doc, 'DEVIS', numero);
   let y = blocClient(doc, 46, data);
-  y = tableauPrix(doc, y, calcul);
+  y = tableauPrix(doc, y, calcul, Boolean(data.arrangementPersonnalise && data.arrangementPersonnalise.trim()));
 
   if (data.arrangementPersonnalise && data.arrangementPersonnalise.trim()) {
     y = assurerPlace(doc, y, 15);
@@ -248,11 +256,23 @@ function construireArticles(data, calcul, numero) {
     });
   }
 
+  const aArrangement = Boolean(data.arrangementPersonnalise && data.arrangementPersonnalise.trim());
+
+  const texteMontant = calcul.negocie
+    ? `Le tarif catalogue de la prestation s'élève à ${formaterEuros(calcul.prixCatalogue)}. D'un commun accord entre les parties, un prix négocié a été convenu, portant le montant total de la prestation à ${formaterEuros(calcul.total)}.`
+    : `Le montant total de la prestation s'élève à ${formaterEuros(calcul.total)}.`;
+
+  // Si un arrangement particulier existe, la règle standard acompte 50% /
+  // solde 50% ne s'affiche plus du tout ici (elle ne s'applique pas) : on
+  // renvoie uniquement vers l'arrangement, pour éviter toute contradiction
+  // visuelle avec les chiffres réellement convenus.
+  const texteModalites = aArrangement
+    ? ` Les modalités de paiement applicables sont exclusivement celles décrites dans l'arrangement particulier prévu ci-dessous, qui remplace toute règle de paiement standard (acompte/solde).`
+    : ` Un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date. Le solde de ${formaterEuros(calcul.solde)} (50%) est payable le jour de la prestation, avant le début de celle-ci.`;
+
   articles.push({
     titreBase: 'Prix et modalités de paiement',
-    texte: calcul.negocie
-      ? `Le tarif catalogue de la prestation s'élève à ${formaterEuros(calcul.prixCatalogue)}. D'un commun accord entre les parties, un prix négocié a été convenu, portant le montant total de la prestation à ${formaterEuros(calcul.total)}. Sauf arrangement particulier prévu ci-dessous, un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date, le solde de ${formaterEuros(calcul.solde)} (50%) étant payable le jour de la prestation, avant le début de celle-ci.`
-      : `Le montant total de la prestation s'élève à ${formaterEuros(calcul.total)}. Sauf arrangement particulier prévu ci-dessous, un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date, le solde de ${formaterEuros(calcul.solde)} (50%) étant payable le jour de la prestation, avant le début de celle-ci.`,
+    texte: texteMontant + texteModalites,
   });
 
   // Clause libre : uniquement si le Prestataire a renseigné un texte dans la
@@ -301,7 +321,7 @@ export function genererContratPDF(data, calcul, numero) {
   const doc = new jsPDF();
   enTete(doc, 'CONTRAT DE PRESTATION', numero);
   let y = blocClient(doc, 46, data);
-  y = tableauPrix(doc, y, calcul);
+  y = tableauPrix(doc, y, calcul, Boolean(data.arrangementPersonnalise && data.arrangementPersonnalise.trim()));
   y += 6;
 
   const articles = construireArticles(data, calcul, numero);
