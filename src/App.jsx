@@ -7,6 +7,7 @@ import {
 import { genererDevisPDF, genererContratPDF } from './pdf';
 import { chargerHistorique, ajouterEntree, supprimerEntree, prochainNumero } from './storage';
 import { MOT_DE_PASSE, CLE_ACCES } from './acces';
+import { corrigerTexte } from './correction';
 import logoDreamRecordTV from './assets/logo.png';
 import './App.css';
 
@@ -32,6 +33,7 @@ export default function App() {
   const [form, setForm] = useState(FORM_VIDE);
   const [historique, setHistorique] = useState(() => chargerHistorique());
   const [message, setMessage] = useState('');
+  const [correctionEnCours, setCorrectionEnCours] = useState(false);
 
   const [autorise, setAutorise] = useState(
     () => typeof window !== 'undefined' && window.localStorage.getItem(CLE_ACCES) === 'oui'
@@ -60,32 +62,70 @@ export default function App() {
     Number(form.heures) > 0 &&
     (!form.negociationActive || Number(form.prixNegocie) > 0);
 
-  const enregistrer = (type, numero) => {
+  const enregistrer = (type, numero, donneesUtilisees) => {
     const entree = {
       id: `${Date.now()}`,
       type,
       numero,
       creeLe: new Date().toISOString(),
-      data: form,
+      data: donneesUtilisees,
       calcul,
     };
     setHistorique(ajouterEntree(entree));
   };
 
-  const telechargerDevis = () => {
+  // Corrige automatiquement les fautes de l'arrangement particulier (le cas
+  // échéant) avant de générer un document, et répercute le texte corrigé
+  // dans le formulaire pour que ce soit transparent pour Danny. En cas de
+  // souci réseau, on retombe silencieusement sur le texte tel quel.
+  const corrigerArrangementSiBesoin = async () => {
+    const texte = form.arrangementPersonnalise;
+    if (!texte || !texte.trim()) return form;
+
+    setCorrectionEnCours(true);
+    const { texteCorrige, nombreCorrections, erreur } = await corrigerTexte(texte);
+    setCorrectionEnCours(false);
+
+    if (erreur) {
+      setMessage(`Correction automatique indisponible (${erreur}) — texte utilisé tel quel.`);
+      return form;
+    }
+    if (nombreCorrections > 0) {
+      setForm((f) => ({ ...f, arrangementPersonnalise: texteCorrige }));
+      setMessage(`${nombreCorrections} correction(s) appliquée(s) au texte de l'arrangement particulier.`);
+    }
+    return { ...form, arrangementPersonnalise: texteCorrige };
+  };
+
+  const telechargerDevis = async () => {
     if (!formValide) { setMessage('Renseigne au moins le nom du client, la date et les heures.'); return; }
+    const donnees = await corrigerArrangementSiBesoin();
     const numero = prochainNumero('DEV');
-    genererDevisPDF(form, calcul, numero);
-    enregistrer('devis', numero);
+    genererDevisPDF(donnees, calcul, numero);
+    enregistrer('devis', numero, donnees);
     setMessage(`Devis ${numero} généré.`);
   };
 
-  const telechargerContrat = () => {
+  const telechargerContrat = async () => {
     if (!formValide) { setMessage('Renseigne au moins le nom du client, la date et les heures.'); return; }
+    const donnees = await corrigerArrangementSiBesoin();
     const numero = prochainNumero('CTR');
-    genererContratPDF(form, calcul, numero);
-    enregistrer('contrat', numero);
+    genererContratPDF(donnees, calcul, numero);
+    enregistrer('contrat', numero, donnees);
     setMessage(`Contrat ${numero} généré.`);
+  };
+
+  const corrigerArrangementManuel = async () => {
+    if (!form.arrangementPersonnalise || !form.arrangementPersonnalise.trim()) return;
+    setCorrectionEnCours(true);
+    const { texteCorrige, nombreCorrections, erreur } = await corrigerTexte(form.arrangementPersonnalise);
+    setCorrectionEnCours(false);
+    if (erreur) {
+      setMessage(`Correction automatique indisponible (${erreur}).`);
+      return;
+    }
+    setForm((f) => ({ ...f, arrangementPersonnalise: texteCorrige }));
+    setMessage(nombreCorrections > 0 ? `${nombreCorrections} correction(s) appliquée(s).` : 'Aucune faute trouvée.');
   };
 
   const reGenerer = (entree) => {
@@ -261,6 +301,20 @@ export default function App() {
               rows={4}
               placeholder="Ex : Le client verse 50% à la réservation, 25% le jour de la prestation, et les 25% restants à la remise du travail final."
             />
+            <div className="arrangement-actions">
+              <button
+                type="button"
+                className="bouton secondaire petit-bouton"
+                onClick={corrigerArrangementManuel}
+                disabled={correctionEnCours || !form.arrangementPersonnalise.trim()}
+              >
+                {correctionEnCours ? 'Correction en cours…' : 'Corriger le texte'}
+              </button>
+              <span className="aide-texte aide-texte-inline">
+                Les fautes d'orthographe et de grammaire de ce texte sont de toute façon corrigées
+                automatiquement au moment de générer le devis ou le contrat.
+              </span>
+            </div>
           </section>
 
           <section className="carte recap">
@@ -280,8 +334,8 @@ export default function App() {
             <div className="ligne petit"><span>Solde (50%) le jour J</span><span>{formaterEuros(calcul.solde)}</span></div>
 
             <div className="actions">
-              <button className="bouton secondaire" onClick={telechargerDevis}>Télécharger le devis (PDF)</button>
-              <button className="bouton principal" onClick={telechargerContrat}>Télécharger le contrat (PDF)</button>
+              <button className="bouton secondaire" onClick={telechargerDevis} disabled={correctionEnCours}>Télécharger le devis (PDF)</button>
+              <button className="bouton principal" onClick={telechargerContrat} disabled={correctionEnCours}>Télécharger le contrat (PDF)</button>
             </div>
             {message && <p className="message">{message}</p>}
           </section>

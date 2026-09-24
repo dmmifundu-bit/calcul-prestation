@@ -286,3 +286,17 @@ input:focus, select:focus, textarea:focus {
   box-sizing: border-box;
   resize: vertical;
 }
+
+.arrangement-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.aide-texte-inline {
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
