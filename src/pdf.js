@@ -217,7 +217,7 @@ function construireArticles(data, calcul, numero) {
   if (estVideo) {
     articles.push({
       titreBase: 'Livrables',
-      texte: `Le Client recevra un teaser d'une durée maximale de ${DUREE_TEASER_MAX_MIN} minutes ainsi qu'un film complet d'une durée maximale de ${DUREE_FILM_MAX_MIN} minutes. Les fichiers seront remis au Client sous forme d'un lien de téléchargement, dans un délai de ${delaiTexte} après la date de la prestation.`,
+      texte: `Le Client recevra un teaser d'une durée maximale de ${DUREE_TEASER_MAX_MIN} minutes ainsi qu'un film complet d'une durée maximale de ${DUREE_FILM_MAX_MIN} minutes. Sauf arrangement particulier prévu ci-dessous, les fichiers seront remis au Client sous forme d'un lien de téléchargement, dans un délai de ${delaiTexte} après la date de la prestation.`,
     });
     articles.push({
       titreBase: 'Droits de diffusion',
@@ -226,7 +226,7 @@ function construireArticles(data, calcul, numero) {
   } else {
     articles.push({
       titreBase: 'Livrables',
-      texte: `Les photographies seront remises au Client sous forme d'un lien de téléchargement, dans un délai de ${delaiTexte} après la date de la prestation.`,
+      texte: `Sauf arrangement particulier prévu ci-dessous, les photographies seront remises au Client sous forme d'un lien de téléchargement, dans un délai de ${delaiTexte} après la date de la prestation.`,
     });
     articles.push({
       titreBase: 'Droits de diffusion',
@@ -248,7 +248,7 @@ function construireArticles(data, calcul, numero) {
   if (data.arrangementPersonnalise && data.arrangementPersonnalise.trim()) {
     articles.push({
       titreBase: 'Arrangement particulier',
-      texte: `Par dérogation aux modalités de paiement standards prévues ci-dessus, les parties conviennent expressément de l'arrangement particulier suivant : ${data.arrangementPersonnalise.trim()}`,
+      texte: `Par dérogation à toute clause standard prévue ci-dessus dans le présent contrat (notamment les délais de livraison des Articles 3 et 5), les parties conviennent expressément de l'arrangement particulier suivant, qui prévaut sur les clauses standards concernées : ${data.arrangementPersonnalise.trim()}`,
     });
   }
 
