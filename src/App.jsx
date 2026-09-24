@@ -8,6 +8,7 @@ import { genererDevisPDF, genererContratPDF } from './pdf';
 import { chargerHistorique, ajouterEntree, supprimerEntree, prochainNumero } from './storage';
 import { MOT_DE_PASSE, CLE_ACCES } from './acces';
 import { corrigerTexte } from './correction';
+import { calculerHeureFin, calculerDureeHeures } from './temps';
 import logoDreamRecordTV from './assets/logo.png';
 import './App.css';
 
@@ -56,6 +57,43 @@ export default function App() {
   const calcul = useMemo(() => calculerPrix(form), [form]);
 
   const majChamp = (champ, valeur) => setForm((f) => ({ ...f, [champ]: valeur }));
+
+  // Calcul automatique entre heure de début, heure de fin et nombre d'heures :
+  // - si on saisit heure de début + nombre d'heures -> l'heure de fin se calcule seule
+  // - si on saisit heure de début + heure de fin -> le nombre d'heures se calcule seul
+  const gererHeureDebut = (valeur) => {
+    setForm((f) => {
+      if (f.heureFin) {
+        const duree = calculerDureeHeures(valeur, f.heureFin);
+        return { ...f, heureDebut: valeur, heures: duree !== null ? duree : f.heures };
+      }
+      if (f.heures && Number(f.heures) > 0) {
+        const fin = calculerHeureFin(valeur, f.heures);
+        return { ...f, heureDebut: valeur, heureFin: fin !== null ? fin : f.heureFin };
+      }
+      return { ...f, heureDebut: valeur };
+    });
+  };
+
+  const gererHeureFin = (valeur) => {
+    setForm((f) => {
+      if (f.heureDebut && valeur) {
+        const duree = calculerDureeHeures(f.heureDebut, valeur);
+        return { ...f, heureFin: valeur, heures: duree !== null ? duree : f.heures };
+      }
+      return { ...f, heureFin: valeur };
+    });
+  };
+
+  const gererHeures = (valeur) => {
+    setForm((f) => {
+      if (f.heureDebut && Number(valeur) > 0) {
+        const fin = calculerHeureFin(f.heureDebut, valeur);
+        return { ...f, heures: valeur, heureFin: fin !== null ? fin : f.heureFin };
+      }
+      return { ...f, heures: valeur };
+    });
+  };
 
   const formValide =
     form.clientNom.trim() &&
@@ -241,11 +279,11 @@ export default function App() {
               </label>
               <label>
                 Heure de début
-                <input type="time" value={form.heureDebut} onChange={(e) => majChamp('heureDebut', e.target.value)} />
+                <input type="time" value={form.heureDebut} onChange={(e) => gererHeureDebut(e.target.value)} />
               </label>
               <label>
                 Heure de fin
-                <input type="time" value={form.heureFin} onChange={(e) => majChamp('heureFin', e.target.value)} />
+                <input type="time" value={form.heureFin} onChange={(e) => gererHeureFin(e.target.value)} />
               </label>
               <label>
                 Type de prestation
@@ -257,7 +295,7 @@ export default function App() {
               </label>
               <label>
                 Nombre d'heures *
-                <input type="number" min="0" step="0.5" value={form.heures} onChange={(e) => majChamp('heures', e.target.value)} />
+                <input type="number" min="0" step="0.5" value={form.heures} onChange={(e) => gererHeures(e.target.value)} />
               </label>
               <label className="case">
                 <input type="checkbox" checked={form.optionDrone} onChange={(e) => majChamp('optionDrone', e.target.checked)} />
