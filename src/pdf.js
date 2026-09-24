@@ -170,6 +170,13 @@ export function genererDevisPDF(data, calcul, numero) {
   let y = blocClient(doc, 46, data);
   y = tableauPrix(doc, y, calcul);
 
+  if (data.arrangementPersonnalise && data.arrangementPersonnalise.trim()) {
+    y = assurerPlace(doc, y, 15);
+    y = ecrireParagraphe(doc, y, 'Arrangement particulier convenu avec le client', { gras: true });
+    y = ecrireParagraphe(doc, y, data.arrangementPersonnalise.trim());
+    y += 4;
+  }
+
   if (data.notes) {
     y = assurerPlace(doc, y, 15);
     y = ecrireParagraphe(doc, y, 'Notes', { gras: true });
@@ -192,71 +199,88 @@ function construireArticles(data, calcul, numero) {
   const delaiJours = estVideo ? DELAI_LIVRAISON_JOURS.video : DELAI_LIVRAISON_JOURS.photo;
   const delaiTexte = estVideo ? `${delaiJours} jours` : `3 semaines (${delaiJours} jours)`;
 
+  // On construit d'abord la liste sans numéro : le numéro d'article est
+  // recalculé à la fin, ce qui permet d'insérer l'arrangement particulier
+  // (s'il y en a un) sans devoir renuméroter les articles à la main.
   const articles = [];
 
   articles.push({
-    titre: 'Article 1 — Parties',
+    titreBase: 'Parties',
     texte: `Le présent contrat est conclu entre ${PRESTATAIRE.nom}, ${PRESTATAIRE.activite}, domicilié ${PRESTATAIRE.adresse} (ci-après "le Prestataire"), et ${data.clientNom || '—'}${data.clientAdresse ? `, domicilié ${data.clientAdresse}` : ''} (ci-après "le Client").`,
   });
 
   articles.push({
-    titre: 'Article 2 — Objet du contrat',
+    titreBase: 'Objet du contrat',
     texte: `Le Prestataire s'engage à réaliser une prestation de type "${calcul.type.label}" à l'occasion de : ${data.typeEvenement || '—'}, le ${formaterDate(data.dateEvenement)}${data.heureDebut ? ` à partir de ${data.heureDebut}` : ''}, pour une durée de ${calcul.heures} heure(s)${calcul.totalOptions > 0 ? ', avec option drone' : ''}.`,
   });
 
   if (estVideo) {
     articles.push({
-      titre: 'Article 3 — Livrables',
+      titreBase: 'Livrables',
       texte: `Le Client recevra un teaser d'une durée maximale de ${DUREE_TEASER_MAX_MIN} minutes ainsi qu'un film complet d'une durée maximale de ${DUREE_FILM_MAX_MIN} minutes. Les fichiers seront remis au Client sous forme d'un lien de téléchargement, dans un délai de ${delaiTexte} après la date de la prestation.`,
     });
     articles.push({
-      titre: 'Article 4 — Droits de diffusion',
+      titreBase: 'Droits de diffusion',
       texte: `Sauf refus écrit du Client avant la date de la prestation, le Client autorise le Prestataire à publier tout ou partie de la vidéo réalisée sur la chaîne YouTube "${PRESTATAIRE.chaineYoutube}" ainsi que sur le site ${PRESTATAIRE.siteWeb}, à des fins de présentation du travail du Prestataire.`,
     });
   } else {
     articles.push({
-      titre: 'Article 3 — Livrables',
+      titreBase: 'Livrables',
       texte: `Les photographies seront remises au Client sous forme d'un lien de téléchargement, dans un délai de ${delaiTexte} après la date de la prestation.`,
     });
     articles.push({
-      titre: 'Article 4 — Droits de diffusion',
+      titreBase: 'Droits de diffusion',
       texte: `Sauf refus écrit du Client avant la date de la prestation, le Client autorise le Prestataire à publier une sélection des photographies réalisées sur le site ${PRESTATAIRE.siteWeb}, à des fins de présentation du travail du Prestataire.`,
     });
   }
 
   articles.push({
-    titre: 'Article 5 — Prix et modalités de paiement',
+    titreBase: 'Prix et modalités de paiement',
     texte: calcul.negocie
-      ? `Le tarif catalogue de la prestation s'élève à ${formaterEuros(calcul.prixCatalogue)}. D'un commun accord entre les parties, un prix négocié a été convenu, portant le montant total de la prestation à ${formaterEuros(calcul.total)}. Un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date. Le solde de ${formaterEuros(calcul.solde)} (50%) est payable le jour de la prestation, avant le début de celle-ci.`
-      : `Le montant total de la prestation s'élève à ${formaterEuros(calcul.total)}. Un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date. Le solde de ${formaterEuros(calcul.solde)} (50%) est payable le jour de la prestation, avant le début de celle-ci.`,
+      ? `Le tarif catalogue de la prestation s'élève à ${formaterEuros(calcul.prixCatalogue)}. D'un commun accord entre les parties, un prix négocié a été convenu, portant le montant total de la prestation à ${formaterEuros(calcul.total)}. Sauf arrangement particulier prévu ci-dessous, un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date, le solde de ${formaterEuros(calcul.solde)} (50%) étant payable le jour de la prestation, avant le début de celle-ci.`
+      : `Le montant total de la prestation s'élève à ${formaterEuros(calcul.total)}. Sauf arrangement particulier prévu ci-dessous, un acompte de ${formaterEuros(calcul.acompte)} (50%) est dû à la signature du présent contrat pour confirmer la réservation de la date, le solde de ${formaterEuros(calcul.solde)} (50%) étant payable le jour de la prestation, avant le début de celle-ci.`,
+  });
+
+  // Clause libre : uniquement si le Prestataire a renseigné un texte dans la
+  // zone "Arrangement particulier" du formulaire (ex : un échéancier de
+  // paiement différent négocié avec ce Client précis). Vide par défaut, donc
+  // le contrat reste inchangé si rien n'est saisi.
+  if (data.arrangementPersonnalise && data.arrangementPersonnalise.trim()) {
+    articles.push({
+      titreBase: 'Arrangement particulier',
+      texte: `Par dérogation aux modalités de paiement standards prévues ci-dessus, les parties conviennent expressément de l'arrangement particulier suivant : ${data.arrangementPersonnalise.trim()}`,
+    });
+  }
+
+  articles.push({
+    titreBase: 'Réservation de la date',
+    texte: `La date de la prestation n'est définitivement réservée qu'à réception de l'acompte visé ci-dessus. Sans acompte reçu dans le délai de validité du devis, le Prestataire se réserve le droit d'accepter une autre prestation à cette même date.`,
   });
 
   articles.push({
-    titre: 'Article 6 — Réservation de la date',
-    texte: `La date de la prestation n'est définitivement réservée qu'à réception de l'acompte visé à l'Article 5. Sans acompte reçu dans le délai de validité du devis, le Prestataire se réserve le droit d'accepter une autre prestation à cette même date.`,
-  });
-
-  articles.push({
-    titre: 'Article 7 — Annulation et report',
+    titreBase: 'Annulation et report',
     texte: `En cas d'annulation par le Client, l'acompte versé reste acquis au Prestataire et n'est pas remboursable. Toute prestation annulée moins de 48 heures avant la date prévue reste due dans son intégralité. En cas d'empêchement du Prestataire (maladie, force majeure), celui-ci s'engage à proposer une nouvelle date au Client ou, à défaut d'accord, à rembourser intégralement l'acompte versé.`,
   });
 
   articles.push({
-    titre: 'Article 8 — Force majeure',
+    titreBase: 'Force majeure',
     texte: `Aucune des parties ne pourra être tenue responsable d'un retard ou d'une inexécution dû à un cas de force majeure (maladie grave, accident, catastrophe naturelle, décision administrative, panne majeure de matériel imprévisible).`,
   });
 
   articles.push({
-    titre: 'Article 9 — Responsabilité',
+    titreBase: 'Responsabilité',
     texte: `La responsabilité du Prestataire ne pourra être engagée au-delà du montant total perçu pour la prestation. Le Prestataire ne saurait être tenu responsable de la perte de fichiers résultant d'une défaillance technique imprévisible et indépendante de sa volonté.`,
   });
 
   articles.push({
-    titre: 'Article 10 — Droit applicable et litiges',
+    titreBase: 'Droit applicable et litiges',
     texte: `Le présent contrat est soumis au droit belge. Tout litige relatif à son interprétation ou à son exécution relève de la compétence exclusive des tribunaux de l'arrondissement de Bruxelles.`,
   });
 
-  return articles;
+  return articles.map((article, index) => ({
+    ...article,
+    titre: `Article ${index + 1} — ${article.titreBase}`,
+  }));
 }
 
 export function genererContratPDF(data, calcul, numero) {

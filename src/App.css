@@ -273,3 +273,16 @@ input:focus, select:focus, textarea:focus {
   cursor: pointer;
   font-size: 15px;
 }
+
+.aide-texte {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.arrangement-champ {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}

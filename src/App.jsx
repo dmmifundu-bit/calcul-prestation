@@ -23,6 +23,7 @@ const FORM_VIDE = {
   optionDrone: false,
   negociationActive: false,
   prixNegocie: '',
+  arrangementPersonnalise: '',
   notes: '',
 };
 
@@ -243,6 +244,23 @@ export default function App() {
               Notes (optionnel)
               <textarea value={form.notes} onChange={(e) => majChamp('notes', e.target.value)} rows={3} />
             </label>
+          </section>
+
+          <section className="carte">
+            <h2>Arrangement particulier (optionnel)</h2>
+            <p className="aide-texte">
+              Si tu t'es mis d'accord avec ce client sur des conditions différentes de celles
+              du contrat standard (par exemple un échéancier de paiement différent), décris-le
+              ici. Ce texte sera ajouté comme clause dans le contrat et dans le devis. Laisse
+              vide pour garder le contrat standard (acompte 50% / solde 50% le jour J).
+            </p>
+            <textarea
+              className="arrangement-champ"
+              value={form.arrangementPersonnalise}
+              onChange={(e) => majChamp('arrangementPersonnalise', e.target.value)}
+              rows={4}
+              placeholder="Ex : Le client verse 50% à la réservation, 25% le jour de la prestation, et les 25% restants à la remise du travail final."
+            />
           </section>
 
           <section className="carte recap">
