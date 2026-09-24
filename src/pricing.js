@@ -20,6 +20,10 @@ export const TYPES_PRESTATION = [
 
 export const OPTION_DRONE_PRIX = 100;
 
+// Tarif appliqué pour chaque heure de prestation effectuée au-delà de
+// l'heure de fin prévue (dépassement).
+export const TARIF_HEURE_SUPPLEMENTAIRE = 100;
+
 // Pourcentage d'acompte demandé à la commande (le solde étant payé le jour
 // de la prestation, avant le début de celle-ci).
 export const ACOMPTE_POURCENTAGE = 0.5;

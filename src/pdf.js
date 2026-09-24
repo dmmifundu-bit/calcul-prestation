@@ -6,6 +6,7 @@ import {
   DELAI_LIVRAISON_JOURS,
   DUREE_TEASER_MAX_MIN,
   DUREE_FILM_MAX_MIN,
+  TARIF_HEURE_SUPPLEMENTAIRE,
 } from './pricing';
 import { LOGO_DREAMRECORD_TV } from './logo';
 
@@ -90,7 +91,13 @@ function blocClient(doc, y, data) {
   doc.setFont('helvetica', 'normal');
   doc.text(`Type d'événement : ${data.typeEvenement || '—'}`, 120, y + 6);
   doc.text(`Date : ${formaterDate(data.dateEvenement)}`, 120, y + 11);
-  if (data.heureDebut) doc.text(`Heure de début : ${data.heureDebut}`, 120, y + 16);
+  if (data.heureDebut && data.heureFin) {
+    doc.text(`Heure : ${data.heureDebut} → ${data.heureFin}`, 120, y + 16);
+  } else if (data.heureDebut) {
+    doc.text(`Heure de début : ${data.heureDebut}`, 120, y + 16);
+  } else if (data.heureFin) {
+    doc.text(`Heure de fin : ${data.heureFin}`, 120, y + 16);
+  }
   doc.text(`Émis le : ${formaterDate(new Date().toISOString())}`, 120, y + 21);
 
   return y + 32;
@@ -209,9 +216,16 @@ function construireArticles(data, calcul, numero) {
     texte: `Le présent contrat est conclu entre ${PRESTATAIRE.nom}, ${PRESTATAIRE.activite}, domicilié ${PRESTATAIRE.adresse} (ci-après "le Prestataire"), et ${data.clientNom || '—'}${data.clientAdresse ? `, domicilié ${data.clientAdresse}` : ''} (ci-après "le Client").`,
   });
 
+  let periodeTexte = '';
+  if (data.heureDebut && data.heureFin) {
+    periodeTexte = ` de ${data.heureDebut} à ${data.heureFin}`;
+  } else if (data.heureDebut) {
+    periodeTexte = ` à partir de ${data.heureDebut}`;
+  }
+
   articles.push({
     titreBase: 'Objet du contrat',
-    texte: `Le Prestataire s'engage à réaliser une prestation de type "${calcul.type.label}" à l'occasion de : ${data.typeEvenement || '—'}, le ${formaterDate(data.dateEvenement)}${data.heureDebut ? ` à partir de ${data.heureDebut}` : ''}, pour une durée de ${calcul.heures} heure(s)${calcul.totalOptions > 0 ? ', avec option drone' : ''}.`,
+    texte: `Le Prestataire s'engage à réaliser une prestation de type "${calcul.type.label}" à l'occasion de : ${data.typeEvenement || '—'}, le ${formaterDate(data.dateEvenement)}${periodeTexte}, pour une durée de ${calcul.heures} heure(s)${calcul.totalOptions > 0 ? ', avec option drone' : ''}. Toute heure de prestation supplémentaire effectuée au-delà de l'heure de fin prévue sera facturée ${formaterEuros(TARIF_HEURE_SUPPLEMENTAIRE)} par heure entamée, sauf arrangement particulier prévu ci-dessous.`,
   });
 
   if (estVideo) {

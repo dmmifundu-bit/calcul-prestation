@@ -19,6 +19,7 @@ const FORM_VIDE = {
   typeEvenement: '',
   dateEvenement: '',
   heureDebut: '',
+  heureFin: '',
   typePrestationId: TYPES_PRESTATION[0].id,
   heures: 1,
   optionDrone: false,
@@ -241,6 +242,10 @@ export default function App() {
               <label>
                 Heure de début
                 <input type="time" value={form.heureDebut} onChange={(e) => majChamp('heureDebut', e.target.value)} />
+              </label>
+              <label>
+                Heure de fin
+                <input type="time" value={form.heureFin} onChange={(e) => majChamp('heureFin', e.target.value)} />
               </label>
               <label>
                 Type de prestation
