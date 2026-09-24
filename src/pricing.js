@@ -11,7 +11,7 @@ export const PRESTATAIRE = {
 
 // Tarif horaire selon le type de prestation choisi.
 export const TYPES_PRESTATION = [
-  { id: 'photo', label: 'Photo', tauxHoraire: 100, categorie: 'photo' },
+  { id: 'photo', label: 'Photo', tauxHoraire: 150, categorie: 'photo' },
   { id: 'video', label: 'Vidéo', tauxHoraire: 150, categorie: 'video' },
   { id: 'live1', label: 'Live — 1 caméra', tauxHoraire: 200, categorie: 'video' },
   { id: 'live2', label: 'Live — 2 caméras', tauxHoraire: 400, categorie: 'video' },
